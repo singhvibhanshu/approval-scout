@@ -1,5 +1,11 @@
 # ApprovalScout
 
+> Know at a glance which open PRs are ready for a triager's label.
+
+[![report](https://github.com/singhvibhanshu/approval-scout/actions/workflows/report.yml/badge.svg)](https://github.com/singhvibhanshu/approval-scout/actions/workflows/report.yml)
+[![Go](https://img.shields.io/badge/Go-1.25-00ADD8?logo=go&logoColor=white)](go.mod)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
 A small, self-hosted bot that scans **every open pull request** in a GitHub
 repository and emails you the ones that have already been **approved by a code
 owner of the files they change** - so a triager can go add the right labels
@@ -14,6 +20,28 @@ but it works against any repo that has a `CODEOWNERS` file.
   actually owns one of the PR's changed paths per `.github/CODEOWNERS`.
 - **Emails an HTML report** with a direct link to each qualifying PR.
 - Zero servers, zero database. Just a scheduled job and an SMTP account.
+
+### What the report looks like
+
+Each run emails an HTML summary; here is the plain-text fallback so you can see
+the shape of it:
+
+```text
+[open-telemetry/opentelemetry-collector-contrib] 44 PR(s) approved by code owners - 2026-08-30 21:00 IST
+Generated Sat 2026-08-30 21:00:00 IST (Asia/Kolkata). 44 of 225 open PRs are approved by a code owner.
+
+1. #40321 hostmetricsreceiver: add disk weighted-io-time metric
+   https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40321
+   author: @a-contributor | approved by: @dmitryax
+   components: receiver/hostmetricsreceiver/ | files changed: 6 | updated: 2026-08-30 18:12 IST
+
+2. #40298 routingconnector: fix panic on empty route table
+   https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/40298
+   author: @another-dev | approved by: @TylerHelmuth, @mwear
+   components: connector/routingconnector/ | files changed: 3 | updated: 2026-08-30 16:47 IST
+```
+
+(PR numbers and titles above are illustrative.)
 
 ---
 
@@ -135,6 +163,27 @@ this size a few times a day.
 - Team-only owned paths need `EXPAND_TEAMS=true` to match.
 - This tool only *reports*; it does not add labels. That final click stays with
   you - by design, so a human confirms before labels move.
+
+## Contributing
+
+Issues and PRs are welcome - this exists to help fellow triagers, so
+improvements that help your workflow probably help someone else's too. To hack
+on it locally:
+
+```bash
+make test    # run the unit tests for the matching logic
+make vet     # go vet
+make dry     # run against the live API and print the report (no email sent)
+```
+
+Where things live:
+
+| Area | Files |
+|------|-------|
+| Core matching logic (pure, unit-tested) | [`approval.go`](approval.go), [`approval_test.go`](approval_test.go) |
+| GitHub API plumbing | [`scanner.go`](scanner.go), [`codeowners.go`](codeowners.go), [`teams.go`](teams.go) |
+| Report rendering and email delivery | [`report.go`](report.go), [`email.go`](email.go) |
+| Config and wiring | [`config.go`](config.go), [`main.go`](main.go) |
 
 ## License
 
