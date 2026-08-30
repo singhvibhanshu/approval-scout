@@ -1,0 +1,9 @@
+# Local secrets
+.env
+
+# Build output
+/approval-scout
+*.exe
+
+# Go
+/vendor/

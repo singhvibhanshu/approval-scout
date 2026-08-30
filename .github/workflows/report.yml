@@ -1,0 +1,63 @@
+name: approval-scout
+
+on:
+  schedule:
+    # GitHub Actions cron is UTC. IST = UTC+5:30.
+    #   03:30 UTC = 09:00 IST
+    #   15:30 UTC = 21:00 IST
+    - cron: "30 3,15 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Print the report to the log instead of emailing"
+        type: boolean
+        default: false
+
+# Read-only: the job only reads public PR data from the target repo.
+permissions:
+  contents: read
+
+concurrency:
+  group: approval-scout
+  cancel-in-progress: false
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          cache: true
+
+      - name: Build
+        run: go build -o approval-scout .
+
+      - name: Run ApprovalScout
+        run: ./approval-scout
+        env:
+          # --- What to scan ---
+          TARGET_REPO: ${{ vars.TARGET_REPO || 'open-telemetry/opentelemetry-collector-contrib' }}
+          # Prefer a PAT (higher rate limit + optional team expansion); falls back
+          # to the built-in token, which is fine for public reads.
+          GH_PAT: ${{ secrets.GH_PAT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          # --- Behaviour (optional; sensible defaults) ---
+          INCLUDE_DRAFTS: ${{ vars.INCLUDE_DRAFTS || 'false' }}
+          EXPAND_TEAMS: ${{ vars.EXPAND_TEAMS || 'false' }}
+          IGNORE_OWNERS: ${{ vars.IGNORE_OWNERS }}
+          SEND_WHEN_EMPTY: ${{ vars.SEND_WHEN_EMPTY || 'false' }}
+          REPORT_TIMEZONE: ${{ vars.REPORT_TIMEZONE || 'Asia/Kolkata' }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+
+          # --- Email delivery (set these as repository secrets) ---
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
