@@ -143,8 +143,8 @@ Cron is in **UTC**. The defaults map to IST as:
 
 | UTC     | IST      |
 |---------|----------|
-| `03:30` | 09:00    |
-| `15:30` | 21:00    |
+| `03:34` | ~09:04   |
+| `15:34` | ~21:04   |
 
 For a true every-8-hours cadence use `cron: "0 */8 * * *"`.
 
