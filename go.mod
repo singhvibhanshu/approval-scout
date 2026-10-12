@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/google/go-github/v84 v84.0.0
 	github.com/hmarr/codeowners v1.2.1
-	golang.org/x/sync v0.23.0
+	golang.org/x/sync v0.24.0
 )
 
 require github.com/google/go-querystring v1.2.0 // indirect
